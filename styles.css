@@ -82,6 +82,10 @@ h2{font-size:clamp(2.1rem,4vw,4rem);line-height:1.05;letter-spacing:-.04em}
 .product-card-upcoming{margin-top:22px;background:linear-gradient(135deg,#101919,#171b1d 60%,#201a16);border-color:var(--line)}
 .product-card-upcoming .product-kicker{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
 .upcoming-note{font-size:.95rem !important;color:var(--accent-soft) !important;margin-bottom:0}
+.privacy-link-row{margin-top:15px}
+.product-privacy-link{display:inline-block;color:var(--accent-soft);font-size:.95rem;font-weight:650;text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1px}
+.product-privacy-link:hover{color:var(--text)}
+.product-privacy-link:focus-visible{outline:2px solid var(--accent);outline-offset:5px;border-radius:4px}
 .integration-note{color:var(--muted);font-size:.92rem;max-width:950px;margin:18px 2px 0}
 .privacy-copy h3{color:var(--text);font-size:1.28rem;letter-spacing:0;margin-top:32px;margin-bottom:10px}
 .privacy-copy ul{padding-left:24px}
