@@ -106,10 +106,15 @@ footer{border-top:1px solid rgba(255,255,255,.05);padding:28px 0;color:var(--mut
 .footer-row{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
 .footer-row div{display:flex;gap:20px}
 @media (max-width:820px){
-  nav{display:none}
+  .nav{height:auto;min-height:76px;flex-wrap:wrap;gap:10px;padding:12px 0}
+  nav{display:flex;flex-wrap:wrap;gap:9px 16px;width:100%;font-size:.88rem}
   .hero{padding-top:78px}
   .hero-grid,.two-col,.product-card,.contact-card{grid-template-columns:1fr}
   .cards{grid-template-columns:1fr}
   h1{font-size:clamp(3rem,14vw,5rem)}
   .product-copy h2{font-size:2.7rem}
 }
+
+/* Keep all navigation visible to mobile visitors, keyboard users and VoiceOver. */
+a:focus-visible{outline:2px solid var(--accent-soft);outline-offset:4px;border-radius:4px}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}.btn:hover{transform:none}}
