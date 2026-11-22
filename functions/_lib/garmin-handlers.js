@@ -44,6 +44,10 @@ export const callback = context => run(context, async ({request,env}) => {
   const identity=await garminAuthorized(GARMIN_USER_ID,token.access_token);
   if(typeof identity.userId!=="string" || identity.userId.length>128) throw new PublicError("Garmin did not return a valid user identifier",502);
   const permissions=await garminAuthorized(GARMIN_PERMISSIONS,token.access_token);
+  const previous=await connected(env,flow.device_hash);
+  if(previous && previous.garmin_user_id!==identity.userId) {
+    throw new PublicError("Disconnect the previous Garmin account before linking a different one",409);
+  }
   const now=currentSeconds();
   await env.GARMIN_DB.prepare(
     "INSERT INTO garmin_connections (device_hash,garmin_user_id,access_ciphertext,refresh_ciphertext,access_expires_at,refresh_expires_at,permissions_json,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?) "+
@@ -65,15 +69,14 @@ export const disconnect = context => run(context, async ({request,env}) => {
   if(!conn) return json({connected:false});
   const access=await validAccessToken(env,conn);
   await garminAuthorized(GARMIN_REVOKE,access,"DELETE");
-  await env.GARMIN_DB.prepare("DELETE FROM garmin_connections WHERE device_hash=?").bind(hash).run();
-  const remaining=await env.GARMIN_DB.prepare("SELECT COUNT(*) AS n FROM garmin_connections WHERE garmin_user_id=?").bind(conn.garmin_user_id).first();
-  if(!remaining?.n) {
-    await env.GARMIN_DB.batch([
-      env.GARMIN_DB.prepare("DELETE FROM garmin_activities WHERE garmin_user_id=?").bind(conn.garmin_user_id),
-      env.GARMIN_DB.prepare("DELETE FROM garmin_health WHERE garmin_user_id=?").bind(conn.garmin_user_id)
-    ]);
-  }
-  return json({connected:false,deletedData:!remaining?.n});
+  // Garmin registration is user/app scoped. Erase every installation's link and
+  // associated imported records when consent is withdrawn from any device.
+  await env.GARMIN_DB.batch([
+    env.GARMIN_DB.prepare("DELETE FROM garmin_connections WHERE garmin_user_id=?").bind(conn.garmin_user_id),
+    env.GARMIN_DB.prepare("DELETE FROM garmin_activities WHERE garmin_user_id=?").bind(conn.garmin_user_id),
+    env.GARMIN_DB.prepare("DELETE FROM garmin_health WHERE garmin_user_id=?").bind(conn.garmin_user_id)
+  ]);
+  return json({connected:false,deletedData:true});
 });
 function dateFromSeconds(n) {
   if(!Number.isFinite(n)) return null;
