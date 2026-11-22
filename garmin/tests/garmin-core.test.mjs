@@ -7,7 +7,7 @@ import {
 } from "../../functions/_lib/garmin-core.js";
 import {trainingGuidance} from "../../functions/_lib/garmin-handlers.js";
 
-globalThis.crypto = webcrypto;
+if (!globalThis.crypto) Object.defineProperty(globalThis, "crypto", {value:webcrypto});
 const env = {
   GARMIN_ENCRYPTION_KEY_B64: Buffer.alloc(32,4).toString("base64"),
   GARMIN_CLIENT_ID: "fake-id",
