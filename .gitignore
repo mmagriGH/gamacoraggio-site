@@ -1,0 +1,10 @@
+# Prevent accidental leaks of OAuth credentials and local D1 state.
+.dev.vars
+.dev.vars.*
+.env
+.env.*
+!.env.example
+.wrangler/
+node_modules/
+.DS_Store
+*.log
