@@ -9,7 +9,7 @@ bindings, user consent, privacy disclosures, and Garmin event tests are verified
 - GET /endurostrength/oauth/garmin/callback (Garmin redirect) => stores encrypted tokens
 - GET /endurostrength/api/garmin/status (device bearer) => connection status
 - GET /endurostrength/api/garmin/context (device bearer) => minimal 7-day data and deterministic guidance
-- POST /endurostrength/api/garmin/disconnect (device bearer) => revokes registration then deletes data on final disconnect
+- POST /endurostrength/api/garmin/disconnect (device bearer) => revokes registration then deletes all linked device records and Garmin data
 - POST /endurostrength/api/garmin/push?key=SECRET (Garmin push) => normalized activity and selected health records
 - POST /endurostrength/api/garmin/workout-preview (device bearer) => validates proposal; does NOT publish to Garmin
 
@@ -41,8 +41,7 @@ bindings, user consent, privacy disclosures, and Garmin event tests are verified
    Complete a real consent, push, refresh, disconnect, permission revocation and
    multi-device authorization test with only consenting test users.
 7. After disconnect confirm Garmin's user registration has been revoked via Garmin's
-   DELETE user/registration endpoint, and that the backend data is deleted when no
-   other authorized installation remains.
+   DELETE user/registration endpoint, and that all related device links and imported data are deleted.
 
 ## Security architecture
 - iOS creates a high-entropy, device-only Keychain token. Requests carry it in the
