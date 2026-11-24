@@ -1,6 +1,24 @@
 // Cloudflare Pages Functions utilities: no embedded credentials.
 const encoder = new TextEncoder();
 export const CALLBACK = "https://gamacoraggio.com/endurostrength/oauth/garmin/callback";
+// Registered redirect must exactly match the Garmin application setting.
+// Preview may use the stable, branch-specific Cloudflare Pages alias, never a
+// random deployment hash. This never weakens the integration feature flag.
+export function callbackURL(env) {
+  const value = env.GARMIN_REDIRECT_URI || CALLBACK;
+  let url;
+  try { url = new URL(value); }
+  catch { throw new PublicError("Garmin redirect configuration is invalid", 503); }
+  const isProduction = url.hostname === "gamacoraggio.com";
+  const isPreview = url.hostname.endsWith(".gamacoraggio-site.pages.dev") &&
+    url.hostname !== "gamacoraggio-site.pages.dev";
+  if (url.protocol !== "https:" || (!isProduction && !isPreview) ||
+      url.pathname !== "/endurostrength/oauth/garmin/callback" ||
+      url.search || url.hash || url.port || url.username || url.password) {
+    throw new PublicError("Garmin redirect configuration is not approved", 503);
+  }
+  return url.toString();
+}
 export const GARMIN_AUTHORIZE = "https://connect.garmin.com/oauth2Confirm";
 export const GARMIN_TOKEN = "https://diauth.garmin.com/di-oauth2-service/oauth/token";
 export const GARMIN_USER_ID = "https://apis.garmin.com/wellness-api/rest/user/id";
