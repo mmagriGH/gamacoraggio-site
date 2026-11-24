@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {webcrypto} from "node:crypto";
 import {
   PublicError, randomSecret, sha256, pkceChallenge, seal, unseal,
-  requireReady, deviceHash, authenticateWebhook, safePositiveNumber
+  requireReady, deviceHash, authenticateWebhook, safePositiveNumber, callbackURL
 } from "../../functions/_lib/garmin-core.js";
 import {trainingGuidance} from "../../functions/_lib/garmin-handlers.js";
 
@@ -61,4 +61,24 @@ test("training volume does not claim physiological recovery",()=>{
   assert.equal(guidance.volumeCategory,"high-volume");
   assert.equal(guidance.isMedicalRecoveryScore,false);
   assert.equal(guidance.activityCountLast48Hours,2);
+});
+
+test("uses the registered production callback by default", () => {
+  assert.equal(callbackURL(env), "https://gamacoraggio.com/endurostrength/oauth/garmin/callback");
+});
+test("accepts a stable Pages preview branch callback", () => {
+  const redirect = "https://feature-endurostrength-2-gar.gamacoraggio-site.pages.dev/endurostrength/oauth/garmin/callback";
+  assert.equal(callbackURL({...env,GARMIN_REDIRECT_URI:redirect}),redirect);
+});
+test("rejects unsafe or malformed OAuth callback addresses", () => {
+  const attempts = [
+    "http://gamacoraggio.com/endurostrength/oauth/garmin/callback",
+    "https://evil.example/endurostrength/oauth/garmin/callback",
+    "https://gamacoraggio.com/endurostrength/oauth/garmin/callback?key=leak",
+    "https://gamacoraggio-site.pages.dev/endurostrength/oauth/garmin/callback",
+    "https://gamacoraggio.com/other/callback"
+  ];
+  for (const uri of attempts) {
+    assert.throws(() => callbackURL({...env,GARMIN_REDIRECT_URI:uri}), e => e.status===503);
+  }
 });
