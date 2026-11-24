@@ -1,5 +1,5 @@
 import {
-  CALLBACK, GARMIN_AUTHORIZE, GARMIN_USER_ID, GARMIN_PERMISSIONS, GARMIN_REVOKE,
+  callbackURL, GARMIN_AUTHORIZE, GARMIN_USER_ID, GARMIN_PERMISSIONS, GARMIN_REVOKE,
   currentSeconds, PublicError, json, html, handleError, requireReady, randomSecret,
   deviceHash, seal, unseal, pkceChallenge, tokenRequest, garminAuthorized, connected,
   validAccessToken, deleteExpiredFlows, authenticateWebhook, safePositiveNumber
@@ -22,7 +22,7 @@ export const start = context => run(context, async ({request,env}) => {
   const url=new URL(GARMIN_AUTHORIZE);
   url.search=new URLSearchParams({
     client_id:env.GARMIN_CLIENT_ID,response_type:"code",code_challenge:await pkceChallenge(verifier),
-    code_challenge_method:"S256",redirect_uri:CALLBACK,state
+    code_challenge_method:"S256",redirect_uri:callbackURL(env),state
   }).toString();
   return json({authorizationURL:url.toString(),expiresIn:600});
 });
@@ -39,7 +39,7 @@ export const callback = context => run(context, async ({request,env}) => {
   const code=args.get("code");
   if(!code||code.length>2048) throw new PublicError("Authorization code missing",400);
   const token=await tokenRequest(env,{
-    grant_type:"authorization_code",code,code_verifier:await unseal(env,flow.verifier_ciphertext),redirect_uri:CALLBACK
+    grant_type:"authorization_code",code,code_verifier:await unseal(env,flow.verifier_ciphertext),redirect_uri:callbackURL(env)
   });
   const identity=await garminAuthorized(GARMIN_USER_ID,token.access_token);
   if(typeof identity.userId!=="string" || identity.userId.length>128) throw new PublicError("Garmin did not return a valid user identifier",502);
