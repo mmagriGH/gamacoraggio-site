@@ -38,6 +38,39 @@ Do **not** create or commit a new `wrangler.jsonc` yet: Cloudflare warns that it
 
    The expected response after this feature branch redeploys is HTTP 503 with JSON `{"service":"endurostrength-garmin","status":"disabled","database":"ready"}`. This confirms both the D1 binding and four tables while the feature flag still protects the integration. `"database":"incomplete"` means a required table is missing; `"database":"unavailable"` suggests the D1 binding or SQL query failed. A 404 means the function did not deploy or routing is wrong.
 
+## Stage B2 — single Garmin redirect URL / safe preview testing
+
+The Garmin application Edit screen currently exposes **one** redirect URL input. Do not
+attempt comma-separated URLs or change that field without planning the test cutover.
+Garmin currently has `https://gamacoraggio.com/endurostrength/oauth/garmin/callback`.
+
+For preview OAuth testing:
+1. Use Cloudflare's **stable branch alias** shown in the latest preview deployment
+   details (not a short random deployment hash). The alias must correspond to
+   `feature/endurostrength-2-garmin-backend`.
+2. When ready for a controlled test, temporarily change the Garmin application's
+   single OAuth redirect to
+   `https://<STABLE-BRANCH-ALIAS>.gamacoraggio-site.pages.dev/endurostrength/oauth/garmin/callback`.
+   Only do this if Garmin permits the edit without revoking approvals, and record the
+   original production URL for restoration.
+3. In Cloudflare Pages -> Settings -> Variables and secrets -> **Preview**, add
+   `GARMIN_REDIRECT_URI` (Text) with the **exact same URL** as Garmin. This is
+   validated by the backend against HTTPS, expected callback path, and domain.
+4. Redeploy the preview branch so the configured redirect takes effect. Keep
+   `GARMIN_INTEGRATION_ENABLED=false` until the isolated integration tests and
+   privacy requirements have passed. Turning it on is not needed for D1 healthcheck.
+5. Use only test accounts under an approved Garmin integration. An OAuth test is not
+   complete until authorization, single-use state, encrypted token storage,
+   permission verification, token refresh and revocation have been tested.
+6. Before production launch, restore Garmin's original production callback,
+   remove the temporary Preview override, deploy the production callback function
+   with production-only D1 and secrets, and confirm the production privacy notice.
+
+If Garmin does not permit a redirect change, create a separate approved Garmin
+test application with its own callback rather than mixing preview OAuth state
+with production domain handlers. Never forward Garmin authorization codes through
+an open redirect or copy OAuth tokens from the browser manually.
+
 ## Stage C — production preparations, later
 
 Only after the preview test and a security review:
