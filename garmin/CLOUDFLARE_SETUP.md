@@ -36,7 +36,7 @@ Do **not** create or commit a new `wrangler.jsonc` yet: Cloudflare warns that it
 
    `https://<preview-host>.pages.dev/endurostrength/api/garmin/healthcheck`
 
-   The expected first-stage response is HTTP 503 with JSON `{"service":"endurostrength-garmin","status":"disabled"}`. This indicates Pages Functions loaded, but the feature flag still protects the integration. A 404 means the function did not deploy or routing is wrong.
+   The expected response after this feature branch redeploys is HTTP 503 with JSON `{"service":"endurostrength-garmin","status":"disabled","database":"ready"}`. This confirms both the D1 binding and four tables while the feature flag still protects the integration. `"database":"incomplete"` means a required table is missing; `"database":"unavailable"` suggests the D1 binding or SQL query failed. A 404 means the function did not deploy or routing is wrong.
 
 ## Stage C — production preparations, later
 
